@@ -45,7 +45,7 @@ const elements = {
   supportJump: document.querySelector("#support-jump"), supportActivity: document.querySelector("#support-activity"),
   finalCats: document.querySelector("#final-cats"),
   hero: document.querySelector("#inicio"), heroFlower: document.querySelector("#hero-orbit"),
-  heroEnter: document.querySelector("#hero-enter"), heroStatus: document.querySelector("#hero-status"),
+  heroRoots: document.querySelector("#hero-roots"), heroEnter: document.querySelector("#hero-enter"), heroStatus: document.querySelector("#hero-status"),
   catDialog: document.querySelector("#cat-dialog"), catPortrait: document.querySelector("#cat-portrait"),
   catKicker: document.querySelector("#cat-kicker"), catTitle: document.querySelector("#cat-title"),
   catIntro: document.querySelector("#cat-intro"), catChallenge: document.querySelector("#cat-challenge")
@@ -142,6 +142,7 @@ function resetCover() {
   clearTimeout(state.coverWakeTimer);
   state.coverWakeTimer = null;
   state.coverAwake = false;
+  document.body.classList.remove("cover-awake");
   elements.hero.classList.remove("is-awake");
   elements.heroFlower.classList.remove("is-awake");
   elements.heroFlower.setAttribute("aria-pressed", "false");
@@ -149,6 +150,63 @@ function resetCover() {
   elements.heroFlower.querySelector(".hero-orbit__label").textContent = "Tócame para empezar";
   elements.heroEnter.disabled = true;
   elements.heroStatus.textContent = "Primero toca la flor para despertar el jardín.";
+  elements.hero.style.removeProperty("--flower-x");
+  elements.hero.style.removeProperty("--flower-y");
+  elements.heroRoots.querySelector(".hero-orbit__root-lines").replaceChildren();
+  elements.heroRoots.querySelector(".hero-orbit__root-leaves").replaceChildren();
+}
+
+function drawCoverRoots(originX, originY, width, height) {
+  const lines = elements.heroRoots.querySelector(".hero-orbit__root-lines");
+  const leaves = elements.heroRoots.querySelector(".hero-orbit__root-leaves");
+  const rootBaseY = originY + Math.min(42, height * .055);
+  const branchY = Math.min(height - 18, rootBaseY + Math.max(46, height * .12));
+  const routes = [
+    { start: [originX, rootBaseY], end: [originX + width * .018, height + 55], delay: 0, stroke: 4 },
+    { start: [originX, branchY], end: [-24, height * .75], delay: 180 },
+    { start: [originX, branchY], end: [width + 24, height * .78], delay: 300 },
+    { start: [originX + width * .005, branchY + height * .055], end: [width * .12, height + 22], delay: 480 },
+    { start: [originX - width * .005, branchY + height * .075], end: [width * .92, height + 22], delay: 600 },
+    { start: [originX, branchY + height * .025], end: [-24, height * .31], delay: 760 },
+    { start: [originX, branchY + height * .045], end: [width + 24, height * .27], delay: 900 },
+    { start: [originX, branchY + height * .13], end: [width * .48, height + 70], delay: 1080, stroke: 2.1 }
+  ];
+
+  elements.heroRoots.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  lines.replaceChildren();
+  leaves.replaceChildren();
+
+  routes.forEach((route, index) => {
+    const [sx, sy] = route.start;
+    const [ex, ey] = route.end;
+    const dx = ex - sx;
+    const dy = ey - sy;
+    const c1x = sx + dx * .28 + (index % 2 ? 1 : -1) * width * .018;
+    const c1y = sy + Math.max(34, height * .12);
+    const c2x = ex - dx * .16;
+    const c2y = ey - dy * .18;
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", `M ${sx} ${sy} C ${c1x} ${c1y}, ${c2x} ${c2y}, ${ex} ${ey}`);
+    path.setAttribute("pathLength", "1");
+    if (route.stroke) path.style.strokeWidth = `${route.stroke}px`;
+    path.style.setProperty("--root-delay", `${route.delay}ms`);
+    lines.appendChild(path);
+
+    if (index === 0) return;
+    [.48, .73].forEach((t, leafIndex) => {
+      const inverse = 1 - t;
+      const x = inverse ** 3 * sx + 3 * inverse ** 2 * t * c1x + 3 * inverse * t ** 2 * c2x + t ** 3 * ex;
+      const y = inverse ** 3 * sy + 3 * inverse ** 2 * t * c1y + 3 * inverse * t ** 2 * c2y + t ** 3 * ey;
+      const leaf = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+      const angle = Math.atan2(dy, dx) * (180 / Math.PI) + (leafIndex ? -38 : 38);
+      leaf.setAttribute("cx", String(x)); leaf.setAttribute("cy", String(y));
+      leaf.setAttribute("rx", leafIndex ? "8" : "10"); leaf.setAttribute("ry", "3.5");
+      leaf.setAttribute("transform", `rotate(${angle} ${x} ${y})`);
+      leaf.setAttribute("fill", index % 3 === 0 ? "#ffe0a8" : "#a8e2c9");
+      leaf.style.setProperty("--leaf-delay", `${route.delay + 520 + leafIndex * 170}ms`);
+      leaves.appendChild(leaf);
+    });
+  });
 }
 
 function wakeCover() {
@@ -158,7 +216,13 @@ function wakeCover() {
   burstPetals(x, y, state.coverAwake ? 12 : 27);
   if (state.coverAwake) return;
 
+  const width = document.documentElement.clientWidth;
+  const height = window.innerHeight;
+  elements.hero.style.setProperty("--flower-x", `${x}px`);
+  elements.hero.style.setProperty("--flower-y", `${y}px`);
+  drawCoverRoots(x, y, width, height);
   state.coverAwake = true;
+  document.body.classList.add("cover-awake");
   elements.hero.classList.add("is-awake");
   elements.heroFlower.classList.add("is-awake");
   elements.heroFlower.setAttribute("aria-pressed", "true");
@@ -170,7 +234,7 @@ function wakeCover() {
     state.coverWakeTimer = null;
     elements.heroEnter.disabled = false;
     elements.heroStatus.textContent = "Ahora sí, entra al jardín.";
-  }, reducedMotion ? 0 : 1450);
+  }, reducedMotion ? 0 : 3150);
 }
 
 function transitionTo(id) {

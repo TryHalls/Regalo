@@ -72,11 +72,17 @@ test("la portada exige despertar la flor antes de entrar y permite repetir el re
   assert.match(html, /id="hero-status" role="status" aria-live="polite"/);
   assert.match(html, /id="hero-orbit"[^>]*aria-pressed="false"/);
   assert.match(html, /class="hero-orbit__roots"[\s\S]*?class="hero-orbit__root-lines"/);
-  assert.match(js, /function wakeCover\(\)[\s\S]*?elements\.heroEnter\.disabled = false/);
+  assert.match(html, /class="hero__veil"/);
+  assert.match(js, /function drawCoverRoots\(originX, originY, width, height\)/);
+  assert.match(js, /end: \[-24, height \* \.75\]/);
+  assert.match(js, /end: \[width \+ 24, height \* \.78\]/);
+  assert.match(js, /function wakeCover\(\)[\s\S]*?drawCoverRoots\(x, y, width, height\)[\s\S]*?elements\.heroEnter\.disabled = false/);
   assert.match(js, /dataset\.screen === "inicio" && id === "jardin" && elements\.heroEnter\.disabled/);
   assert.match(js, /#restart-button[\s\S]*?resetCover\(\)/);
   assert.match(css, /@keyframes roots-grow/);
-  assert.match(css, /@keyframes garden-light/);
+  assert.match(css, /@keyframes aurora-bloom/);
+  assert.match(css, /\.hero__veil \{ position: fixed; inset: 0/);
+  assert.match(css, /\.hero-orbit__roots \{ position: fixed; inset: 0/);
 });
 
 test("el rincón tiene actividades con controles y no persiste sus elecciones", () => {
