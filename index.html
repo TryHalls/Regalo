@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#130920" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="description" content="Un jardín interactivo creado para el cumpleaños de Manuela." />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Un pequeño jardín para Manuela" />
+    <meta property="og:description" content="Un regalo interactivo con recuerdos, gatos y un jardín violeta." />
+    <meta name="twitter:card" content="summary" />
+    <title>Un pequeño jardín para Manuela</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-screen="inicio">
+    <svg class="svg-sprite" aria-hidden="true">
+      <symbol id="icon-flower" viewBox="0 0 100 100">
+        <g fill="currentColor">
+          <ellipse cx="50" cy="23" rx="13" ry="24" />
+          <ellipse cx="50" cy="23" rx="13" ry="24" transform="rotate(72 50 50)" />
+          <ellipse cx="50" cy="23" rx="13" ry="24" transform="rotate(144 50 50)" />
+          <ellipse cx="50" cy="23" rx="13" ry="24" transform="rotate(216 50 50)" />
+          <ellipse cx="50" cy="23" rx="13" ry="24" transform="rotate(288 50 50)" />
+        </g>
+        <circle cx="50" cy="50" r="9" fill="#ffd4a8" />
+      </symbol>
+      <symbol id="icon-rose" viewBox="0 0 120 150">
+        <path d="M61 70c-2 28-1 49 2 72" fill="none" stroke="#71a87c" stroke-width="5" stroke-linecap="round" />
+        <path d="M61 102c-18-16-30-8-34 5 15 6 27 3 34-5ZM62 116c17-15 29-8 33 5-14 6-26 3-33-5Z" fill="#71a87c" />
+        <path d="M60 74C28 72 20 47 35 33c3-18 28-22 39-9 19-3 31 17 22 32-3 15-18 23-36 18Z" fill="currentColor" />
+        <path d="M60 67c-17-2-25-14-17-24 2-9 15-13 23-5 12-4 23 8 17 18-3 8-12 13-23 11Z" fill="#b84283" opacity=".82" />
+        <path d="M58 57c-8-3-9-11-3-15 7-5 16 1 14 8-1 5-6 8-11 7Z" fill="#79275c" opacity=".75" />
+      </symbol>
+      <symbol id="icon-paw" viewBox="0 0 64 64">
+        <ellipse cx="32" cy="40" rx="17" ry="14" fill="currentColor" />
+        <circle cx="13" cy="27" r="7" fill="currentColor" />
+        <circle cx="25" cy="16" r="7" fill="currentColor" />
+        <circle cx="40" cy="16" r="7" fill="currentColor" />
+        <circle cx="51" cy="28" r="7" fill="currentColor" />
+      </symbol>
+      <symbol id="icon-spark" viewBox="0 0 100 100">
+        <path d="M50 3c4 30 17 43 47 47-30 4-43 17-47 47-4-30-17-43-47-47C33 46 46 33 50 3Z" fill="currentColor" />
+      </symbol>
+      <symbol id="icon-picnic" viewBox="0 0 100 100">
+        <path d="M29 42c3-28 39-28 42 0" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" />
+        <rect x="18" y="38" width="64" height="45" rx="12" fill="currentColor" opacity=".85" />
+        <path d="M18 55h64M39 39v44M61 39v44" stroke="#2b1246" stroke-width="4" opacity=".55" />
+      </symbol>
+      <symbol id="icon-cinema" viewBox="0 0 100 100">
+        <rect x="15" y="28" width="70" height="51" rx="8" fill="currentColor" opacity=".9" />
+        <path d="m18 28 13-14h17L35 28Zm29 0 13-14h17L64 28Z" fill="currentColor" />
+        <path d="m43 43 24 12-24 13Z" fill="#2b1246" />
+      </symbol>
+      <symbol id="icon-plate" viewBox="0 0 100 100">
+        <circle cx="50" cy="51" r="32" fill="none" stroke="currentColor" stroke-width="7" />
+        <circle cx="50" cy="51" r="19" fill="currentColor" opacity=".38" />
+        <path d="M13 18v64M7 18v25h12V18M87 18v64M87 18c-10 12-10 24 0 30" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+      </symbol>
+      <symbol id="icon-mystery" viewBox="0 0 100 100">
+        <circle cx="43" cy="43" r="27" fill="none" stroke="currentColor" stroke-width="8" />
+        <path d="m63 64 24 24" stroke="currentColor" stroke-width="10" stroke-linecap="round" />
+        <path d="M35 36c1-10 18-11 19 0 0 9-10 8-10 17M44 62h.1" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
+      </symbol>
+    </svg>
+    <div class="cursor-glow" aria-hidden="true"></div>
+    <div class="ambient" id="ambient" aria-hidden="true"></div>
+    <div class="petal-layer" id="petal-layer" aria-hidden="true"></div>
+    <div class="transition-curtain" aria-hidden="true"><svg viewBox="0 0 100 100"><use href="#icon-flower" /></svg></div>
+
+    <aside class="game-hud" aria-label="Progreso del jardín" inert>
+      <div class="cat-counter"><svg aria-hidden="true" viewBox="0 0 64 64"><use href="#icon-paw" /></svg><strong id="cat-count">0/5</strong></div>
+      <button class="hint-button" id="hint-button" type="button">¿Qué es esto?</button>
+      <a class="support-jump" id="support-jump" href="#support-nook" tabindex="-1">Rincón tranquilo</a>
+    </aside>
+
+    <div class="roaming-cat-layer" id="roaming-cat-layer" aria-live="polite"></div>
+
+    <main>
+      <section class="screen hero is-active" id="inicio" aria-labelledby="hero-title">
+        <div class="hero__copy reveal-stack">
+          <span class="eyebrow">30 de septiembre · Nivel 19 desbloqueado</span>
+          <h1 id="hero-title">Te hice un pequeño jardín</h1>
+          <p>
+            Porque regalarte un enlace era más fácil que intentar envolver flores,
+            gatos y recuerdos raros en una caja.
+          </p>
+          <button class="button button--primary" data-go="jardin" type="button">
+            <span>Entrar al jardín</span><span aria-hidden="true">→</span>
+          </button>
+          <small class="micro-hint">Consejo: si algo parece tocarse, probablemente se toca.</small>
+        </div>
+
+        <button class="hero-orbit" id="hero-orbit" type="button" aria-label="Hacer florecer el jardín">
+          <span class="orbit orbit--one"></span>
+          <span class="orbit orbit--two"></span>
+          <span class="orbit orbit--three"></span>
+          <svg class="hero-orbit__rose" viewBox="0 0 100 100" aria-hidden="true"><use href="#icon-flower" /></svg>
+          <svg class="hero-orbit__spark spark--one" viewBox="0 0 100 100" aria-hidden="true"><use href="#icon-spark" /></svg>
+          <svg class="hero-orbit__spark spark--two" viewBox="0 0 100 100" aria-hidden="true"><use href="#icon-spark" /></svg>
+          <svg class="hero-orbit__spark spark--three" viewBox="0 0 100 100" aria-hidden="true"><use href="#icon-spark" /></svg>
+          <span class="hero-orbit__label">Tócame</span>
+        </button>
+      </section>
+
+      <section class="screen garden" id="jardin" aria-labelledby="garden-title">
+        <header class="section-heading reveal-stack">
+          <span class="eyebrow">Un recorrido corto, pero muy tuyo</span>
+          <h2 id="garden-title">Cosas que ya tienen tu nombre</h2>
+          <p>Empieza por la flor del centro. El resto del jardín todavía está dormido.</p>
+        </header>
+
+        <div class="garden-progress" aria-live="polite" inert aria-hidden="true">
+          <div class="garden-progress__copy">
+            <span id="progress-text">0 de 4 recuerdos</span>
+            <span id="cat-progress-text">0 de 5 gatos</span>
+          </div>
+          <div class="progress__track"><span id="progress-bar"></span></div>
+        </div>
+
+        <div class="garden-world orbit-world">
+          <div class="vine vine--left" aria-hidden="true"></div>
+          <div class="vine vine--right" aria-hidden="true"></div>
+          <span class="butterfly butterfly--one" aria-hidden="true"><i></i></span>
+          <span class="butterfly butterfly--two" aria-hidden="true"><i></i></span>
+
+          <div class="orbit-ring orbit-ring--outer" aria-hidden="true"><span></span><i></i></div>
+          <div class="orbit-ring orbit-ring--middle" aria-hidden="true"><span></span></div>
+          <div class="orbit-ring orbit-ring--inner" aria-hidden="true"><span></span></div>
+
+          <button class="garden-heart" id="garden-heart" type="button" aria-label="Despertar el jardín" aria-expanded="false">
+            <span class="garden-heart__halo"></span>
+            <svg class="garden-heart__flower" viewBox="0 0 100 100" aria-hidden="true"><use href="#icon-flower" /></svg>
+            <span class="garden-heart__message">Toca para despertar el jardín</span>
+          </button>
+
+          <div class="memory-path" inert aria-hidden="true">
+            <button class="memory-card memory-card--one" data-memory="picnic" type="button" aria-haspopup="dialog">
+              <span class="memory-card__number">ÓRBITA 01</span><span class="planet-glow"></span><svg class="memory-card__symbol" viewBox="0 0 100 100" aria-hidden="true"><use href="#icon-picnic" /></svg>
+              <span class="memory-card__label">Un picnic muy completo</span><span class="memory-card__action">Descubrir ↗</span>
+            </button>
+            <button class="memory-card memory-card--two" data-memory="cine" type="button" aria-haspopup="dialog">
+              <span class="memory-card__number">ÓRBITA 02</span><span class="planet-glow"></span><svg class="memory-card__symbol" viewBox="0 0 100 100" aria-hidden="true"><use href="#icon-cinema" /></svg>
+              <span class="memory-card__label">Kimetsu y cero límites</span><span class="memory-card__action">Descubrir ↗</span>
+            </button>
+            <button class="memory-card memory-card--three" data-memory="crepes" type="button" aria-haspopup="dialog">
+              <span class="memory-card__number">ÓRBITA 03</span><span class="planet-glow"></span><svg class="memory-card__symbol" viewBox="0 0 100 100" aria-hidden="true"><use href="#icon-plate" /></svg>
+              <span class="memory-card__label">El método Crepes</span><span class="memory-card__action">Descubrir ↗</span>
+            </button>
+            <button class="memory-card memory-card--four" data-memory="casos" type="button" aria-haspopup="dialog">
+              <span class="memory-card__number">ÓRBITA 04</span><span class="planet-glow"></span><svg class="memory-card__symbol" viewBox="0 0 100 100" aria-hidden="true"><use href="#icon-mystery" /></svg>
+              <span class="memory-card__label">Casos bajo investigación</span><span class="memory-card__action">Descubrir ↗</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="unlock-panel" id="unlock-panel" inert aria-hidden="true">
+          <svg class="unlock-panel__lock" viewBox="0 0 100 100" aria-hidden="true"><use href="#icon-spark" /></svg>
+          <p id="unlock-copy">Abre las cuatro rosas y encuentra los cinco gatos para despertar la última flor.</p>
+          <button class="button button--secondary" id="final-button" type="button" disabled>Sorpresa todavía bloqueada</button>
+        </div>
+
+        <section class="support-nook" id="support-nook" aria-labelledby="support-title" inert aria-hidden="true">
+          <div class="support-nook__flower" aria-hidden="true"><svg viewBox="0 0 100 100"><use href="#icon-flower" /></svg></div>
+          <span class="eyebrow">Y si algún día lo necesitas</span>
+          <h2 id="support-title">Un rinconcito tranquilo</h2>
+          <p class="support-nook__intro">No toca tener un motivo especial. Escoge una mini actividad según lo que te provoque ahora; puedes cambiar de idea o salir cuando quieras.</p>
+          <div class="support-options" role="group" aria-label="Elegir una actividad tranquila">
+            <button class="support-option" type="button" data-support="pausa" aria-pressed="false">Hacer una pausa</button>
+            <button class="support-option" type="button" data-support="compania" aria-pressed="false">Pedir compañía</button>
+            <button class="support-option" type="button" data-support="juego" aria-pressed="false">Distraerme jugando</button>
+          </div>
+          <div class="support-activity" id="support-activity" aria-live="polite">
+            <p class="support-activity__empty">Este jardín no guarda lo que eliges. Aquí no hay respuestas correctas ni afán.</p>
+          </div>
+          <p class="support-nook__note">Puedes cerrar esta actividad cuando quieras. Este rinconcito acompaña un momento, pero no reemplaza a alguien de confianza cuando necesitas compañía de verdad.</p>
+        </section>
+      </section>
+
+      <section class="screen final" id="final" aria-labelledby="final-title">
+        <div class="final__scene" role="img" aria-label="La flor y los cinco gatos del jardín">
+          <div class="final__bloom" aria-hidden="true"><span class="final__ring"></span><svg class="final__flower" viewBox="0 0 120 150"><use href="#icon-rose" /></svg></div>
+          <div class="final__cats" id="final-cats" aria-hidden="true"></div>
+        </div>
+        <span class="eyebrow">Jardín completado</span>
+        <h2 id="final-title">Feliz cumpleaños, Manuela</h2>
+        <p>Quería hacerte algo distinto y que tuviera un poquito de esas cosas que te gustan y de los momentos que todavía me hacen reír.</p>
+        <p>Gracias por acompañarme, por el cariño y por tantos planes, comidas y bobadas. Me alegra mucho haberte conocido y espero que tus 19 vengan con más música, más gatos, más flores, mucha comida rica y un montón de momentos que te den ganas de recordar.</p>
+        <p class="final__wish">Ojalá hoy recuerdes que hay personas que te quieren, te valoran y se alegran de que existas.</p>
+        <p class="final__tease">Eso sí: ya cumpliste 19 y, lastimosamente, no has crecido absolutamente nada. Habrá que seguir esperando.</p>
+        <p class="signature">Con mucho cariño, Dylan.</p>
+        <div class="final-actions">
+          <button class="button button--primary" data-go="jardin" type="button"><span>Volver al jardín</span><span aria-hidden="true">↺</span></button>
+          <button class="button button--secondary" id="restart-button" type="button">Jugar otra vez</button>
+        </div>
+      </section>
+    </main>
+
+    <dialog class="memory-dialog" id="memory-dialog">
+      <div class="dialog-decoration" aria-hidden="true"><svg viewBox="0 0 100 100"><use href="#icon-spark" /></svg></div>
+      <button class="dialog-close" type="button" aria-label="Cerrar recuerdo">×</button>
+      <span class="dialog-kicker" id="dialog-kicker"></span>
+      <h2 id="dialog-title"></h2>
+      <p id="dialog-copy"></p>
+      <div class="dialog-footer"><span class="dialog-note">Una rosa más despierta</span><button class="button button--primary dialog-continue" type="button">Guardar recuerdo</button></div>
+    </dialog>
+
+    <dialog class="cat-dialog" id="cat-dialog" aria-labelledby="cat-title" aria-describedby="cat-intro">
+      <button class="dialog-close cat-dialog__close" type="button" aria-label="Cerrar encuentro">×</button>
+      <div class="cat-dialog__header">
+        <div class="cat-dialog__portrait" id="cat-portrait"></div>
+        <div>
+          <span class="dialog-kicker" id="cat-kicker">Visitante del jardín</span>
+          <h2 id="cat-title">Un gato bloquea el camino</h2>
+        </div>
+      </div>
+      <p class="cat-dialog__intro" id="cat-intro"></p>
+      <div class="cat-challenge" id="cat-challenge"></div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <noscript><p class="no-script-message">Este jardín necesita JavaScript para abrir los recuerdos y jugar. Actívalo en el navegador y vuelve a entrar.</p></noscript>
+    <script src="script.js"></script>
+  </body>
+</html>
