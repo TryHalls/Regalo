@@ -29,7 +29,7 @@ function readSavedSet(key, validValues) {
 const state = {
   openedMemories: readSavedSet("openedMemoriesV5", validMemoryIds),
   foundCats: readSavedSet("foundCatsV5", validCatIds),
-  currentCat: null, activeCat: null, challengeComplete: false, catTimer: null, challengeTimer: null, supportTimer: null, transitionLocked: false, gardenTouches: 0
+  currentCat: null, activeCat: null, challengeComplete: false, catTimer: null, challengeTimer: null, supportTimer: null, transitionLocked: false, gardenTouches: 0, coverAwake: false, coverWakeTimer: null
 };
 
 const elements = {
@@ -44,6 +44,8 @@ const elements = {
   memoryPath: document.querySelector(".memory-path"), supportNook: document.querySelector("#support-nook"),
   supportJump: document.querySelector("#support-jump"), supportActivity: document.querySelector("#support-activity"),
   finalCats: document.querySelector("#final-cats"),
+  hero: document.querySelector("#inicio"), heroFlower: document.querySelector("#hero-orbit"),
+  heroEnter: document.querySelector("#hero-enter"), heroStatus: document.querySelector("#hero-status"),
   catDialog: document.querySelector("#cat-dialog"), catPortrait: document.querySelector("#cat-portrait"),
   catKicker: document.querySelector("#cat-kicker"), catTitle: document.querySelector("#cat-title"),
   catIntro: document.querySelector("#cat-intro"), catChallenge: document.querySelector("#cat-challenge")
@@ -136,8 +138,44 @@ function renderFinalCats() {
   });
 }
 
+function resetCover() {
+  clearTimeout(state.coverWakeTimer);
+  state.coverWakeTimer = null;
+  state.coverAwake = false;
+  elements.hero.classList.remove("is-awake");
+  elements.heroFlower.classList.remove("is-awake");
+  elements.heroFlower.setAttribute("aria-pressed", "false");
+  elements.heroFlower.setAttribute("aria-label", "Toca la flor para despertar el jardín");
+  elements.heroFlower.querySelector(".hero-orbit__label").textContent = "Tócame para empezar";
+  elements.heroEnter.disabled = true;
+  elements.heroStatus.textContent = "Primero toca la flor para despertar el jardín.";
+}
+
+function wakeCover() {
+  const rect = elements.heroFlower.getBoundingClientRect();
+  const x = rect.left + rect.width / 2;
+  const y = rect.top + rect.height / 2;
+  burstPetals(x, y, state.coverAwake ? 12 : 27);
+  if (state.coverAwake) return;
+
+  state.coverAwake = true;
+  elements.hero.classList.add("is-awake");
+  elements.heroFlower.classList.add("is-awake");
+  elements.heroFlower.setAttribute("aria-pressed", "true");
+  elements.heroFlower.setAttribute("aria-label", "La flor despertó; el jardín está listo");
+  elements.heroFlower.querySelector(".hero-orbit__label").textContent = "Ya despertó";
+  elements.heroStatus.textContent = "Mira cómo despierta el jardín…";
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  state.coverWakeTimer = setTimeout(() => {
+    state.coverWakeTimer = null;
+    elements.heroEnter.disabled = false;
+    elements.heroStatus.textContent = "Ahora sí, entra al jardín.";
+  }, reducedMotion ? 0 : 1450);
+}
+
 function transitionTo(id) {
   if (state.transitionLocked) return;
+  if (document.body.dataset.screen === "inicio" && id === "jardin" && elements.heroEnter.disabled) return;
   state.transitionLocked = true; document.body.classList.add("is-transitioning");
   setTimeout(() => {
     document.querySelectorAll(".screen").forEach((screen) => screen.classList.toggle("is-active", screen.id === id));
@@ -587,10 +625,7 @@ document.addEventListener("pointermove", (event) => {
 });
 document.querySelectorAll("[data-go]").forEach((button) => button.addEventListener("click", () => transitionTo(button.dataset.go)));
 
-document.querySelector("#hero-orbit").addEventListener("click", (event) => {
-  event.currentTarget.classList.toggle("is-awake"); const rect = event.currentTarget.getBoundingClientRect();
-  burstPetals(rect.left + rect.width / 2, rect.top + rect.height / 2, 18); showToast("El jardín despertó. Ahora sí puedes entrar.");
-});
+elements.heroFlower.addEventListener("click", wakeCover);
 
 document.querySelector("#garden-heart").addEventListener("click", (event) => {
   const messages = ["El jardín dice que sigas explorando.", "Una flor acaba de moverse. Sospechoso.", "Los gatos definitivamente están tramando algo.", "Sí, puedes seguir tocando. No se daña."];
@@ -820,6 +855,7 @@ elements.supportActivity.addEventListener("click", (event) => {
 
 elements.finalButton.addEventListener("click", () => { if (!elements.finalButton.disabled) transitionTo("final"); });
 document.querySelector("#restart-button").addEventListener("click", () => {
+  resetCover();
   state.openedMemories.clear();
   state.foundCats.clear();
   state.gardenTouches = 0;

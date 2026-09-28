@@ -86,21 +86,53 @@
             Porque regalarte un enlace era más fácil que intentar envolver flores,
             gatos y recuerdos raros en una caja.
           </p>
-          <button class="button button--primary" data-go="jardin" type="button">
+          <button class="button button--primary hero__enter" id="hero-enter" data-go="jardin" type="button" disabled>
             <span>Entrar al jardín</span><span aria-hidden="true">→</span>
           </button>
-          <small class="micro-hint">Consejo: si algo parece tocarse, probablemente se toca.</small>
+          <small class="micro-hint" id="hero-status" role="status" aria-live="polite">Primero toca la flor para despertar el jardín.</small>
         </div>
 
-        <button class="hero-orbit" id="hero-orbit" type="button" aria-label="Hacer florecer el jardín">
+        <button class="hero-orbit" id="hero-orbit" type="button" aria-label="Toca la flor para despertar el jardín" aria-pressed="false" aria-describedby="hero-status">
+          <span class="hero-orbit__light" aria-hidden="true"></span>
+          <span class="hero-orbit__rays" aria-hidden="true"></span>
           <span class="orbit orbit--one"></span>
           <span class="orbit orbit--two"></span>
           <span class="orbit orbit--three"></span>
+          <svg class="hero-orbit__roots" viewBox="0 0 500 500" aria-hidden="true">
+            <defs>
+              <linearGradient id="hero-root-gradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#ffb7dd" />
+                <stop offset=".47" stop-color="#bea0ff" />
+                <stop offset="1" stop-color="#8fd9c8" />
+              </linearGradient>
+            </defs>
+            <g class="hero-orbit__root-lines" fill="none" stroke="url(#hero-root-gradient)" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M250 260 C250 300 243 324 248 364 S259 430 250 480" />
+              <path d="M248 302 C218 320 199 331 171 349 S101 374 53 402" />
+              <path d="M248 315 C279 335 302 351 341 360 S406 383 459 407" />
+              <path d="M247 366 C215 379 195 402 178 425 S153 458 123 476" />
+              <path d="M253 379 C284 391 304 414 321 436 S352 464 381 480" />
+              <path d="M173 348 C159 319 139 310 115 307 M341 360 C355 331 370 321 394 319" />
+            </g>
+            <g class="hero-orbit__leaves" fill="#a8e2c9">
+              <path d="M172 348 Q144 325 142 350 Q152 361 172 348Z" />
+              <path d="M115 307 Q94 283 94 311 Q104 319 115 307Z" />
+              <path d="M341 360 Q366 336 369 363 Q358 374 341 360Z" />
+              <path d="M394 319 Q407 293 420 315 Q414 327 394 319Z" />
+              <path d="M178 425 Q160 401 150 421 Q155 435 178 425Z" />
+              <path d="M321 436 Q341 411 352 434 Q346 447 321 436Z" />
+              <path d="M250 431 Q227 411 224 436 Q237 446 250 431Z" />
+            </g>
+            <g class="hero-orbit__buds" fill="#ffc0df">
+              <circle cx="53" cy="402" r="5" /><circle cx="459" cy="407" r="5" />
+              <circle cx="123" cy="476" r="4" /><circle cx="381" cy="480" r="4" />
+            </g>
+          </svg>
           <svg class="hero-orbit__rose" viewBox="0 0 100 100" aria-hidden="true"><use href="#icon-flower" /></svg>
           <svg class="hero-orbit__spark spark--one" viewBox="0 0 100 100" aria-hidden="true"><use href="#icon-spark" /></svg>
           <svg class="hero-orbit__spark spark--two" viewBox="0 0 100 100" aria-hidden="true"><use href="#icon-spark" /></svg>
           <svg class="hero-orbit__spark spark--three" viewBox="0 0 100 100" aria-hidden="true"><use href="#icon-spark" /></svg>
-          <span class="hero-orbit__label">Tócame</span>
+          <span class="hero-orbit__label">Tócame para empezar</span>
         </button>
       </section>
 

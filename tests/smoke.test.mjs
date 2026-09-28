@@ -65,6 +65,20 @@ test("el jardín empieza accesiblemente dormido y activa sus controles juntos", 
   assert.match(js, /setGardenAwake\(true\)/);
 });
 
+test("la portada exige despertar la flor antes de entrar y permite repetir el recorrido", () => {
+  const enter = html.match(/<button[^>]*id="hero-enter"[^>]*>/)?.[0];
+  assert.ok(enter, "Falta el botón de entrada");
+  assert.match(enter, /\bdisabled\b/);
+  assert.match(html, /id="hero-status" role="status" aria-live="polite"/);
+  assert.match(html, /id="hero-orbit"[^>]*aria-pressed="false"/);
+  assert.match(html, /class="hero-orbit__roots"[\s\S]*?class="hero-orbit__root-lines"/);
+  assert.match(js, /function wakeCover\(\)[\s\S]*?elements\.heroEnter\.disabled = false/);
+  assert.match(js, /dataset\.screen === "inicio" && id === "jardin" && elements\.heroEnter\.disabled/);
+  assert.match(js, /#restart-button[\s\S]*?resetCover\(\)/);
+  assert.match(css, /@keyframes roots-grow/);
+  assert.match(css, /@keyframes garden-light/);
+});
+
 test("el rincón tiene actividades con controles y no persiste sus elecciones", () => {
   assert.equal((html.match(/data-support=/g) || []).length, 3);
   for (const activity of ["pausa", "compania", "juego"]) assert.ok(html.includes(`data-support="${activity}"`));
