@@ -150,8 +150,8 @@ function resetCover() {
   elements.heroFlower.querySelector(".hero-orbit__label").textContent = "Tócame para empezar";
   elements.heroEnter.disabled = true;
   elements.heroStatus.textContent = "Primero toca la flor para despertar el jardín.";
-  elements.hero.style.removeProperty("--flower-x");
-  elements.hero.style.removeProperty("--flower-y");
+  document.body.style.removeProperty("--flower-x");
+  document.body.style.removeProperty("--flower-y");
   elements.heroRoots.querySelector(".hero-orbit__root-lines").replaceChildren();
   elements.heroRoots.querySelector(".hero-orbit__root-leaves").replaceChildren();
 }
@@ -218,8 +218,8 @@ function wakeCover() {
 
   const width = document.documentElement.clientWidth;
   const height = window.innerHeight;
-  elements.hero.style.setProperty("--flower-x", `${x}px`);
-  elements.hero.style.setProperty("--flower-y", `${y}px`);
+  document.body.style.setProperty("--flower-x", `${x}px`);
+  document.body.style.setProperty("--flower-y", `${y}px`);
   drawCoverRoots(x, y, width, height);
   state.coverAwake = true;
   document.body.classList.add("cover-awake");

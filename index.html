@@ -12,7 +12,7 @@
     <meta name="twitter:card" content="summary" />
     <title>Un pequeño jardín para Manuela</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css?v=cover-awakening-2" />
+    <link rel="stylesheet" href="styles.css?v=cover-awakening-3" />
   </head>
   <body data-screen="inicio">
     <svg class="svg-sprite" aria-hidden="true">
@@ -66,6 +66,20 @@
     </svg>
     <div class="cursor-glow" aria-hidden="true"></div>
     <div class="ambient" id="ambient" aria-hidden="true"></div>
+    <div class="hero__veil" aria-hidden="true"></div>
+    <div class="hero__aurora" aria-hidden="true"></div>
+    <svg class="hero-orbit__roots" id="hero-roots" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="hero-root-gradient" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#ffb7dd" />
+          <stop offset=".42" stop-color="#c29cff" />
+          <stop offset=".78" stop-color="#93dfc5" />
+          <stop offset="1" stop-color="#ffe1a5" />
+        </linearGradient>
+      </defs>
+      <g class="hero-orbit__root-lines" fill="none" stroke="url(#hero-root-gradient)" stroke-linecap="round" stroke-linejoin="round"></g>
+      <g class="hero-orbit__root-leaves" fill="#a8e2c9"></g>
+    </svg>
     <div class="petal-layer" id="petal-layer" aria-hidden="true"></div>
     <div class="transition-curtain" aria-hidden="true"><svg viewBox="0 0 100 100"><use href="#icon-flower" /></svg></div>
 
@@ -79,19 +93,6 @@
 
     <main>
       <section class="screen hero is-active" id="inicio" aria-labelledby="hero-title">
-        <div class="hero__veil" aria-hidden="true"></div>
-        <svg class="hero-orbit__roots" id="hero-roots" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
-          <defs>
-            <linearGradient id="hero-root-gradient" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0" stop-color="#ffb7dd" />
-              <stop offset=".42" stop-color="#c29cff" />
-              <stop offset=".78" stop-color="#93dfc5" />
-              <stop offset="1" stop-color="#ffe1a5" />
-            </linearGradient>
-          </defs>
-          <g class="hero-orbit__root-lines" fill="none" stroke="url(#hero-root-gradient)" stroke-linecap="round" stroke-linejoin="round"></g>
-          <g class="hero-orbit__root-leaves" fill="#a8e2c9"></g>
-        </svg>
         <div class="hero__copy reveal-stack">
           <span class="eyebrow">30 de septiembre · Nivel 19 desbloqueado</span>
           <h1 id="hero-title">Te hice un pequeño jardín</h1>
@@ -234,6 +235,6 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <noscript><p class="no-script-message">Este jardín necesita JavaScript para abrir los recuerdos y jugar. Actívalo en el navegador y vuelve a entrar.</p></noscript>
-    <script src="script.js?v=cover-awakening-2"></script>
+    <script src="script.js?v=cover-awakening-3"></script>
   </body>
 </html>
