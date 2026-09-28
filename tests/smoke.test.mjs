@@ -11,7 +11,7 @@ const css = read("styles.css");
 const js = read("script.js");
 
 test("los recursos locales referenciados existen", () => {
-  const localLinks = [...html.matchAll(/(?:href|src)="([^"#][^\"]*)"/g)].map((match) => match[1]);
+  const localLinks = [...html.matchAll(/(?:href|src)="([^"#][^\"]*)"/g)].map((match) => match[1].split("?")[0]);
   for (const resource of localLinks) assert.ok(existsSync(join(root, resource)), `Falta ${resource}`);
 });
 
