@@ -984,7 +984,7 @@ function renderFireflyActivity() {
     if (gameOver) return;
     const light = document.createElement("button");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const lifetime = reducedMotion ? 2400 : Math.max(1080, 1950 - found * 150);
+    const lifetime = reducedMotion ? 2900 : Math.max(1880, 2600 - found * 180);
     let x = randomBetween(12, 88);
     let y = randomBetween(20, 78);
     for (let attempt = 0; attempt < 8 && lastPosition && Math.hypot(x - lastPosition.x, y - lastPosition.y) < 27; attempt += 1) {

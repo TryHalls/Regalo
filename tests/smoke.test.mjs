@@ -149,6 +149,7 @@ test("la luz del cursor evita repintar todo el fondo y pausa animaciones al ocul
   assert.match(css, /\.cursor-glow[\s\S]*?will-change: transform/);
   assert.match(css, /body\.page-paused \*/);
   assert.match(js, /matchMedia\("\(hover: hover\) and \(pointer: fine\)"\)/);
+  assert.match(css, /\.button\[hidden\]\s*\{\s*display:\s*none!important/);
 });
 
 test("la página no solicita servicios externos ni usa emojis como ilustraciones", () => {
