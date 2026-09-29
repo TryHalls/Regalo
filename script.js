@@ -15,6 +15,20 @@ const cats = [
 
 const validMemoryIds = new Set(Object.keys(memories));
 const validCatIds = new Set(cats.map((cat) => cat.id));
+const companyMessages = [
+  "¿Tienes un ratico para hablar? No necesito soluciones, solo compañía.",
+  "¿Me haces compañía un rato? Ando con la cabeza llena.",
+  "¿Te puedo llamar? Quería hablar con alguien de confianza.",
+  "¿Hacemos una llamada y cada uno hace sus cosas? Con estar ahí me sirve.",
+  "¿Nos vemos un rato? Me vendría bien salir de la casa.",
+  "¿Me distraes con cualquier cosa? Cuéntame algo, mándame un meme, lo que sea.",
+  "Hoy no me siento muy bien. ¿Puedes quedarte hablando conmigo un rato?",
+  "¿Tienes un momentico? No sé ni qué decir, solo quería buscarte.",
+  "¿Podemos hablar de cualquier bobada? Me vendría bien pensar en otra cosa.",
+  "¿Te quedas conmigo en llamada mientras hago mis cosas?",
+  "Estoy teniendo un día pesado. ¿Me acompañas un rato, si puedes?",
+  "¿Te animas a salir por algo de comer? Quiero despejarme un poquito."
+];
 
 function readSavedSet(key, validValues) {
   try {
@@ -29,7 +43,7 @@ function readSavedSet(key, validValues) {
 const state = {
   openedMemories: readSavedSet("openedMemoriesV5", validMemoryIds),
   foundCats: readSavedSet("foundCatsV5", validCatIds),
-  currentCat: null, activeCat: null, challengeComplete: false, catTimer: null, challengeTimer: null, supportTimer: null, transitionLocked: false, gardenTouches: 0, coverAwake: false, coverWakeTimer: null
+  currentCat: null, activeCat: null, challengeComplete: false, catTimer: null, catTransitionTimer: null, challengeTimer: null, supportTimer: null, supportTimerType: null, transitionLocked: false, gardenTouches: 0, coverAwake: false, coverWakeTimer: null
 };
 
 const elements = {
@@ -277,19 +291,38 @@ function updateProgress() {
   });
   elements.finalButton.disabled = !ready; elements.unlockPanel.classList.toggle("is-ready", ready);
   elements.finalButton.textContent = ready ? "Despertar la última flor" : "Sorpresa todavía bloqueada";
-  elements.unlockCopy.textContent = ready ? "Lo encontraste todo. La última flor ya puede despertar." : `Te faltan ${4 - memoryCount} rosas y ${5 - catCount} gatos.`;
+  elements.unlockCopy.textContent = ready ? "Lo encontraste todo. La última flor ya puede despertar." : `Te faltan ${4 - memoryCount} rosas y ${5 - catCount} gatos. Los que se escondan vuelven a aparecer.`;
 }
 
 function clearCurrentCat() {
-  clearTimeout(state.catTimer);
+  if (state.catTimer !== null) {
+    window.clearTimeout(state.catTimer);
+    state.catTimer = null;
+  }
+  if (state.catTransitionTimer !== null) {
+    window.clearTimeout(state.catTransitionTimer);
+    state.catTransitionTimer = null;
+  }
   if (state.currentCat) { state.currentCat.remove(); state.currentCat = null; }
 }
 
-function scheduleCat(delay = randomBetween(1800, 4200)) {
-  clearTimeout(state.catTimer);
+function catsCanAppear() {
   const supportIsActive = document.querySelector('[data-support][aria-pressed="true"]');
-  if (state.foundCats.size === cats.length || supportIsActive || document.body.dataset.screen !== "jardin" || !document.body.classList.contains("garden-awake")) return;
-  state.catTimer = setTimeout(spawnCat, delay);
+  return state.foundCats.size < cats.length
+    && document.body.dataset.screen === "jardin"
+    && document.body.classList.contains("garden-awake")
+    && !supportIsActive
+    && !elements.dialog.open
+    && !elements.catDialog.open
+    && !document.hidden;
+}
+
+function scheduleCat(delay = randomBetween(1800, 4200)) {
+  if (!catsCanAppear() || state.currentCat || state.catTimer !== null) return;
+  state.catTimer = window.setTimeout(() => {
+    state.catTimer = null;
+    if (catsCanAppear()) spawnCat();
+  }, delay);
 }
 
 function createCatDrawing(profile) {
@@ -618,7 +651,7 @@ function openCatChallenge(profile) {
 }
 
 function spawnCat() {
-  clearCurrentCat();
+  if (!catsCanAppear() || state.currentCat) return;
   const available = cats.filter((cat) => !state.foundCats.has(cat.id));
   if (!available.length) return;
   const profile = available[Math.floor(Math.random() * available.length)];
@@ -631,15 +664,21 @@ function spawnCat() {
   const position = positions[Math.floor(Math.random() * positions.length)];
   const cat = document.createElement("button");
   cat.type = "button"; cat.className = "roaming-cat";
-  cat.setAttribute("aria-label", "Gato escondido. Tócalo antes de que escape.");
+  cat.setAttribute("aria-label", "Gato escondido. Tócalo para descubrir su reto.");
   cat.style.setProperty("--cat-x", `${position.x}vw`); cat.style.setProperty("--cat-y", `${position.y}vh`);
   cat.style.setProperty("--from-x", position.fromX); cat.style.setProperty("--from-y", position.fromY);
   cat.style.setProperty("--peek-rotation", position.rotation);
   cat.appendChild(createCatDrawing(profile));
   cat.addEventListener("click", (event) => {
+    if (state.currentCat !== cat || cat.classList.contains("is-hiding") || cat.classList.contains("is-caught")) return;
+    if (state.catTimer !== null) {
+      window.clearTimeout(state.catTimer);
+      state.catTimer = null;
+    }
     const rect = cat.getBoundingClientRect();
     cat.classList.add("is-caught"); burstPetals(rect.left + rect.width / 2, rect.top + rect.height / 2, 15);
-    setTimeout(() => {
+    state.catTransitionTimer = window.setTimeout(() => {
+      state.catTransitionTimer = null;
       if (state.currentCat !== cat) return;
       clearCurrentCat();
       openCatChallenge(profile);
@@ -648,14 +687,18 @@ function spawnCat() {
   });
   elements.catLayer.appendChild(cat); state.currentCat = cat;
   requestAnimationFrame(() => requestAnimationFrame(() => cat.classList.add("is-peeking")));
-  state.catTimer = setTimeout(() => {
-    cat.classList.remove("is-peeking"); showToast("Se escapó un gato… aparecerá otra vez por algún lado.");
-    setTimeout(() => {
+  state.catTimer = window.setTimeout(() => {
+    state.catTimer = null;
+    if (state.currentCat !== cat) return;
+    cat.classList.add("is-hiding");
+    cat.tabIndex = -1;
+    state.catTimer = window.setTimeout(() => {
+      state.catTimer = null;
       if (state.currentCat !== cat) return;
       clearCurrentCat();
-      scheduleCat();
+      scheduleCat(randomBetween(850, 1600));
     }, 550);
-  }, 5200);
+  }, 6200);
 }
 
 function setupCardTilt() {
@@ -680,12 +723,20 @@ function setupRipples() {
   });
 }
 
-document.addEventListener("pointermove", (event) => {
-  cancelAnimationFrame(pointerFrame);
-  pointerFrame = requestAnimationFrame(() => {
-    document.documentElement.style.setProperty("--mx", `${event.clientX}px`);
-    document.documentElement.style.setProperty("--my", `${event.clientY}px`);
-  });
+if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+  document.addEventListener("pointermove", (event) => {
+    if (event.pointerType === "touch") return;
+    cancelAnimationFrame(pointerFrame);
+    pointerFrame = requestAnimationFrame(() => {
+      document.documentElement.style.setProperty("--mx", `${event.clientX}px`);
+      document.documentElement.style.setProperty("--my", `${event.clientY}px`);
+    });
+  }, { passive: true });
+}
+
+document.addEventListener("visibilitychange", () => {
+  document.body.classList.toggle("page-paused", document.hidden);
+  if (!document.hidden) scheduleCat(300);
 });
 document.querySelectorAll("[data-go]").forEach((button) => button.addEventListener("click", () => transitionTo(button.dataset.go)));
 
@@ -733,14 +784,26 @@ elements.catDialog.addEventListener("close", () => {
 
 document.querySelector("#hint-button").addEventListener("click", () => {
   if (state.foundCats.size === 5) showToast("Ya encontraste los cinco gatos. Misión cumplida.");
-  else { showToast("Encuéntralos por los bordes y supera la prueba de cada uno para ganar su confianza."); clearCurrentCat(); scheduleCat(450); }
+  else { showToast("Busca por los bordes y supera el reto de cada uno. Si se esconden, vuelven a salir hasta encontrar los cinco."); clearCurrentCat(); scheduleCat(450); }
 });
 
 function clearSupportTimer() {
   if (state.supportTimer !== null) {
-    window.clearInterval(state.supportTimer);
+    if (state.supportTimerType === "interval") window.clearInterval(state.supportTimer);
+    else window.clearTimeout(state.supportTimer);
     state.supportTimer = null;
+    state.supportTimerType = null;
   }
+}
+
+function scheduleSupportTimeout(callback, delay) {
+  clearSupportTimer();
+  state.supportTimerType = "timeout";
+  state.supportTimer = window.setTimeout(() => {
+    state.supportTimer = null;
+    state.supportTimerType = null;
+    callback();
+  }, delay);
 }
 
 function resetSupportActivity() {
@@ -784,6 +847,7 @@ function renderBreathingActivity() {
     toggle.textContent = "Pausar";
     phaseText.textContent = phase === "inhala" ? "Inhala suave cuando la flor se abra." : "Suelta el aire cuando la flor se encoja.";
     paintBreathState();
+    state.supportTimerType = "interval";
     state.supportTimer = window.setInterval(() => {
       if (phase === "inhala") {
         phase = "suelta";
@@ -834,14 +898,31 @@ function renderCompanyActivity() {
   elements.supportActivity.innerHTML = `
     <div class="support-activity__panel">
       ${supportActivityHeader("POR SI TE SIRVE", "Pedir compañía, a tu manera", "No tienes que explicar todo ni encontrar las palabras perfectas. Puedes copiar esto, cambiarlo o no usarlo.")}
-      <label class="message-template__label" for="company-message">Una idea de mensaje</label>
-      <textarea class="message-template" id="company-message" rows="3" readonly>¿Tienes un ratico para acompañarme o hablar un poco? No necesito que soluciones nada; solo me serviría compartir un momento contigo.</textarea>
+      <label class="message-template__label" for="company-suggestion">Escoge una que te suene a ti</label>
+      <select class="message-suggestion" id="company-suggestion"></select>
+      <label class="message-template__label" for="company-message">Tu mensaje (puedes cambiarlo)</label>
+      <textarea class="message-template" id="company-message" rows="3"></textarea>
       <div class="support-activity__actions"><button class="button button--primary" id="copy-company-message" type="button">Copiar mensaje</button><span class="copy-status" id="copy-status" role="status" aria-live="polite">No se envía ni se almacena en esta página; solo se copia si lo pides.</span></div>
-      <p class="breath-footnote">Puedes mandárselo a alguien de confianza. No tienes que pedírmelo a mí.</p>
+      <p class="breath-footnote">Lo puedes mandar a quien te dé confianza. Y no, no tengo que ser yo.</p>
     </div>`;
 
+  const suggestion = elements.supportActivity.querySelector("#company-suggestion");
   const message = elements.supportActivity.querySelector("#company-message");
   const status = elements.supportActivity.querySelector("#copy-status");
+  companyMessages.forEach((text, index) => {
+    const option = document.createElement("option");
+    option.value = String(index);
+    option.textContent = text;
+    suggestion.appendChild(option);
+  });
+  message.value = companyMessages[0];
+  suggestion.addEventListener("change", () => {
+    message.value = companyMessages[Number(suggestion.value)] || companyMessages[0];
+    status.textContent = "Cámbialo con tus palabras si quieres; no se manda desde aquí.";
+  });
+  message.addEventListener("input", () => {
+    status.textContent = "Así queda tu versión. Solo se copia si tocas el botón.";
+  });
   elements.supportActivity.querySelector("#copy-company-message").addEventListener("click", async () => {
     try {
       await navigator.clipboard.writeText(message.value);
@@ -857,43 +938,115 @@ function renderCompanyActivity() {
 function renderFireflyActivity() {
   elements.supportActivity.innerHTML = `
     <div class="support-activity__panel">
-      ${supportActivityHeader("MINI MISIÓN", "Una búsqueda chiquita", "Se escondieron cinco luciérnagas por este pedacito de jardín. Encuéntralas sin afán; no hay reloj.")}
-      <div class="firefly-hunt" id="firefly-hunt" role="group" aria-label="Buscar cinco luciérnagas"></div>
-      <p class="challenge-status" id="firefly-status" aria-live="polite">0 de 5 encontradas.</p>
-      <div class="firefly-finish" id="firefly-finish" hidden><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#icon-flower" /></svg><p>Jardín revisado. Ni una luciérnaga paga arriendo aquí.</p><button class="button button--secondary" id="firefly-again" type="button">Otra búsqueda</button></div>
+      ${supportActivityHeader("MINI MISIÓN", "Pilla las luciérnagas", "Esta vez sí se escondieron: solo aparece una luz cada vez y cambia de sitio. Tócala antes de que se apague. Junta cinco; pueden escaparse hasta tres.")}
+      <div class="firefly-scoreboard" aria-label="Marcador de la búsqueda"><span>Encontradas <strong id="firefly-found">0 / 5</strong></span><span>Escapadas <strong id="firefly-missed">0 / 3</strong></span></div>
+      <div class="firefly-hunt" id="firefly-hunt" role="group" aria-label="Jardín de noche. La luciérnaga aparecerá aquí."><span class="firefly-hunt__grass" aria-hidden="true"></span><span class="firefly-hunt__hint" id="firefly-hint">Por ahora, puro jardín. Ojo con los destellos.</span></div>
+      <p class="challenge-status" id="firefly-status" aria-live="polite">Cuando quieras, empieza la búsqueda.</p>
+      <div class="support-activity__actions firefly-actions"><button class="button button--primary" id="firefly-start" type="button">Empezar búsqueda</button></div>
+      <div class="firefly-finish" id="firefly-finish" hidden><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#icon-flower" /></svg><p id="firefly-result"></p><button class="button button--secondary" id="firefly-again" type="button">Otra búsqueda</button></div>
     </div>`;
 
   const hunt = elements.supportActivity.querySelector("#firefly-hunt");
   const status = elements.supportActivity.querySelector("#firefly-status");
   const finish = elements.supportActivity.querySelector("#firefly-finish");
-  const positions = [[12, 24], [74, 20], [48, 52], [22, 76], [83, 70]];
+  const hint = elements.supportActivity.querySelector("#firefly-hint");
+  const foundText = elements.supportActivity.querySelector("#firefly-found");
+  const missedText = elements.supportActivity.querySelector("#firefly-missed");
+  const result = elements.supportActivity.querySelector("#firefly-result");
+  const start = elements.supportActivity.querySelector("#firefly-start");
   let found = 0;
-  positions.forEach(([x, y], index) => {
+  let missed = 0;
+  let lastPosition = null;
+  let activeFirefly = null;
+  let gameOver = false;
+
+  const updateScore = () => {
+    foundText.textContent = `${found} / 5`;
+    missedText.textContent = `${missed} / 3`;
+  };
+
+  const finishGame = (won) => {
+    gameOver = true;
+    clearSupportTimer();
+    activeFirefly?.remove();
+    activeFirefly = null;
+    start.hidden = true;
+    hint.hidden = true;
+    hunt.classList.toggle("is-complete", won);
+    result.textContent = won
+      ? "Las encontraste todas. El jardín quedó un poquito más iluminado."
+      : "Se fueron tres, pero no pasa nada: estas luciérnagas son rápidas. ¿Otra ronda?";
+    finish.hidden = false;
+    elements.supportActivity.querySelector("#firefly-again").focus({ preventScroll: true });
+  };
+
+  const placeFirefly = () => {
+    if (gameOver) return;
     const light = document.createElement("button");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const lifetime = reducedMotion ? 2400 : Math.max(1080, 1950 - found * 150);
+    let x = randomBetween(12, 88);
+    let y = randomBetween(20, 78);
+    for (let attempt = 0; attempt < 8 && lastPosition && Math.hypot(x - lastPosition.x, y - lastPosition.y) < 27; attempt += 1) {
+      x = randomBetween(12, 88);
+      y = randomBetween(20, 78);
+    }
+    lastPosition = { x, y };
     light.type = "button";
     light.className = "support-firefly";
     light.style.setProperty("--hunt-x", `${x}%`);
     light.style.setProperty("--hunt-y", `${y}%`);
-    light.setAttribute("aria-label", `Luciérnaga escondida ${index + 1}`);
-    light.addEventListener("click", () => {
-      if (light.disabled) return;
-      light.disabled = true;
-      light.classList.add("is-found");
-      found += 1;
-      status.textContent = `${found} de 5 encontradas${found === 5 ? ". Misión cumplida." : ". Sigue mirando por aquí."}`;
-      if (found === positions.length) {
-        hunt.classList.add("is-complete");
-        finish.hidden = false;
-        elements.supportActivity.querySelector("#firefly-again").focus({ preventScroll: true });
-      } else {
-        hunt.querySelector(".support-firefly:not(:disabled)")?.focus({ preventScroll: true });
-      }
-    });
+    light.style.setProperty("--light-time", `${lifetime}ms`);
+    light.setAttribute("aria-label", "Luciérnaga a la vista. Toca el destello para atraparla.");
+    activeFirefly = light;
     hunt.appendChild(light);
+    light.focus({ preventScroll: true });
+    hint.hidden = true;
+    status.textContent = "¡Ahí va! Toca el destello.";
+    light.addEventListener("click", () => {
+      if (gameOver || activeFirefly !== light) return;
+      clearSupportTimer();
+      light.disabled = true;
+      light.classList.add("is-caught");
+      light.addEventListener("transitionend", (event) => {
+        if (event.propertyName === "opacity") light.remove();
+      });
+      found += 1;
+      updateScore();
+      activeFirefly = null;
+      status.textContent = found === 5 ? "¡Cinco encontradas!" : `¡Bien! ${found} de 5. A ver dónde aparece la siguiente.`;
+      if (found === 5) {
+        scheduleSupportTimeout(() => finishGame(true), 220);
+        return;
+      }
+      scheduleSupportTimeout(placeFirefly, 390);
+    });
+    scheduleSupportTimeout(() => {
+      if (activeFirefly !== light) return;
+      light.remove();
+      activeFirefly = null;
+      missed += 1;
+      updateScore();
+      if (missed === 3) {
+        status.textContent = "Se escaparon tres. Puedes probar otra vez cuando quieras.";
+        finishGame(false);
+        return;
+      }
+      status.textContent = "¡Uy, esa se escondió! La siguiente puede aparecer en cualquier parte.";
+      scheduleSupportTimeout(placeFirefly, 430);
+    }, lifetime);
+  };
+
+  start.addEventListener("click", () => {
+    start.hidden = true;
+    hint.hidden = false;
+    hunt.classList.add("is-searching");
+    status.textContent = "Busca la única luz que aparece y tócala antes de que se vaya.";
+    scheduleSupportTimeout(placeFirefly, 350);
   });
   elements.supportActivity.querySelector("#firefly-again").addEventListener("click", () => {
     renderFireflyActivity();
-    elements.supportActivity.querySelector("[data-support-back]")?.focus({ preventScroll: true });
+    elements.supportActivity.querySelector("#firefly-start")?.focus({ preventScroll: true });
   });
 }
 
@@ -928,6 +1081,15 @@ document.querySelector("#restart-button").addEventListener("click", () => {
   transitionTo("inicio");
   clearCurrentCat();
   showToast("El jardín volvió a esconderlo todo.");
+});
+
+document.querySelector("#troll-reveal-button").addEventListener("click", (event) => {
+  const button = event.currentTarget;
+  document.querySelector("#troll-reveal").hidden = false;
+  button.setAttribute("aria-expanded", "true");
+  button.textContent = "Sorpresa revelada";
+  button.disabled = true;
+  document.querySelector("#troll-reveal-status").textContent = "La última sorpresa ya apareció.";
 });
 
 createAmbient(); setupCardTilt(); setupRipples(); updateProgress();

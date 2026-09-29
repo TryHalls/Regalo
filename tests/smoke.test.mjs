@@ -97,10 +97,21 @@ test("el rincón tiene actividades con controles y no persiste sus elecciones", 
   assert.match(js, /function renderFireflyActivity\(\)/);
   assert.match(js, /navigator\.clipboard\.writeText\(message\.value\)/);
   assert.match(js, /function resetSupportActivity\(\)/);
-  assert.match(js, /const positions = \[\[12, 24\].*\[83, 70\]\]/);
+  const companionMessages = js.slice(js.indexOf("const companyMessages = ["), js.indexOf("\n];", js.indexOf("const companyMessages = [")));
+  assert.equal((companionMessages.match(/^\s+"/gm) || []).length, 12, "Debe haber varias frases listas para adaptar");
+  assert.match(companionMessages, /un ratico|un momentico|cualquier bobada/);
+  assert.match(js, /id="company-suggestion"[\s\S]*?textarea class="message-template" id="company-message"/);
+  assert.match(js, /message\.addEventListener\("input"/);
+  const firefly = js.slice(js.indexOf("function renderFireflyActivity()"), js.indexOf("function openSupportActivity"));
+  assert.match(firefly, /const placeFirefly = \(\) =>/);
+  assert.match(firefly, /randomBetween\(12, 88\)/);
+  assert.match(firefly, /randomBetween\(20, 78\)/);
+  assert.match(firefly, /activeFirefly !== light/);
+  assert.match(firefly, /missed === 3/);
+  assert.doesNotMatch(firefly, /const positions = \[/, "No debe mostrar las cinco luciérnagas desde el inicio");
   assert.match(js, /puedes pausar o cambiar de actividad cuando quieras/);
   assert.match(js, /No se envía ni se almacena en esta página/);
-  assert.match(js, /No tienes que pedírmelo a mí/);
+  assert.match(js, /no tengo que ser yo/);
   assert.doesNotMatch(js, /No tiene que ser Dylan/);
   const supportLogic = js.slice(js.indexOf("function clearSupportTimer"), js.indexOf("elements.finalButton.addEventListener"));
   assert.doesNotMatch(supportLogic, /localStorage/);
@@ -108,6 +119,36 @@ test("el rincón tiene actividades con controles y no persiste sus elecciones", 
   assert.match(js, /function renderFinalCats\(\)/);
   assert.match(js, /cats\.forEach\(\(profile, index\)/);
   assert.match(html, /id="final-cats" aria-hidden="true"/);
+});
+
+test("los gatos vuelven a salir hasta que se completen y retoman al volver a la pestaña", () => {
+  const catLoop = js.slice(js.indexOf("function clearCurrentCat()"), js.indexOf("function createCatDrawing"));
+  const spawn = js.slice(js.indexOf("function spawnCat()"), js.indexOf("function setupCardTilt"));
+  assert.match(catLoop, /function catsCanAppear\(\)/);
+  assert.match(catLoop, /state\.foundCats\.size < cats\.length/);
+  assert.match(catLoop, /!document\.hidden/);
+  assert.match(catLoop, /state\.catTimer !== null/);
+  assert.match(spawn, /cat\.classList\.add\("is-hiding"\)/);
+  assert.match(spawn, /scheduleCat\(randomBetween\(850, 1600\)\)/);
+  assert.match(js, /document\.addEventListener\("visibilitychange"[\s\S]*?scheduleCat\(300\)/);
+  assert.match(js, /if \(state\.foundCats\.size === 5\) showToast/);
+});
+
+test("la última sorpresa está escondida hasta el botón y usa el adjunto local", () => {
+  assert.match(html, /id="troll-reveal-button"[^>]*aria-expanded="false"[^>]*aria-controls="troll-reveal"/);
+  assert.match(html, /id="troll-reveal" hidden/);
+  assert.match(html, /src="assets\/gorilla-reveal\.webp"/);
+  assert.match(js, /document\.querySelector\("#troll-reveal"\)\.hidden = false/);
+  assert.match(js, /button\.setAttribute\("aria-expanded", "true"\)/);
+  assert.ok(existsSync(join(root, "assets", "gorilla-reveal.webp")));
+});
+
+test("la luz del cursor evita repintar todo el fondo y pausa animaciones al ocultar la pestaña", () => {
+  const bodyBackground = css.slice(css.indexOf("\nbody {"), css.indexOf("\nbody::before"));
+  assert.doesNotMatch(bodyBackground, /var\(--m[xy]\)/);
+  assert.match(css, /\.cursor-glow[\s\S]*?will-change: transform/);
+  assert.match(css, /body\.page-paused \*/);
+  assert.match(js, /matchMedia\("\(hover: hover\) and \(pointer: fine\)"\)/);
 });
 
 test("la página no solicita servicios externos ni usa emojis como ilustraciones", () => {

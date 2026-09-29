@@ -12,7 +12,7 @@
     <meta name="twitter:card" content="summary" />
     <title>Un pequeño jardín para Manuela</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css?v=cover-awakening-3" />
+    <link rel="stylesheet" href="styles.css?v=companion-fireflies-1" />
   </head>
   <body data-screen="inicio">
     <svg class="svg-sprite" aria-hidden="true">
@@ -203,6 +203,15 @@
         <p>Gracias por acompañarme, por el cariño y por tantos planes, comidas y bobadas. Me alegra mucho haberte conocido y espero que tus 19 vengan con más música, más gatos, más flores, mucha comida rica y un montón de momentos que te den ganas de recordar.</p>
         <p class="final__wish">Ojalá hoy recuerdes que hay personas que te quieren, te valoran y se alegran de que existas.</p>
         <p class="final__tease">Eso sí: ya cumpliste 19 y, lastimosamente, no has crecido absolutamente nada. Habrá que seguir esperando.</p>
+        <div class="final-prank">
+          <p class="final-prank__hint">Y antes de cerrar, te falta una cosa. Confía en mí.</p>
+          <button class="button button--secondary" id="troll-reveal-button" type="button" aria-expanded="false" aria-controls="troll-reveal">Toca aquí para la última sorpresa</button>
+          <p class="final-prank__status" id="troll-reveal-status" role="status" aria-live="polite"></p>
+          <figure class="final-prank__image" id="troll-reveal" hidden>
+            <img src="assets/gorilla-reveal.webp" alt="Un gorila mirando a cámara y levantando el dedo medio, en tono de broma." decoding="async" />
+            <figcaption>Bueno. Ahora sí: feliz cumpleaños, Manuela.</figcaption>
+          </figure>
+        </div>
         <p class="signature">Con mucho cariño, Dylan.</p>
         <div class="final-actions">
           <button class="button button--primary" data-go="jardin" type="button"><span>Volver al jardín</span><span aria-hidden="true">↺</span></button>
@@ -235,6 +244,6 @@
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <noscript><p class="no-script-message">Este jardín necesita JavaScript para abrir los recuerdos y jugar. Actívalo en el navegador y vuelve a entrar.</p></noscript>
-    <script src="script.js?v=cover-awakening-3"></script>
+    <script src="script.js?v=companion-fireflies-1"></script>
   </body>
 </html>
